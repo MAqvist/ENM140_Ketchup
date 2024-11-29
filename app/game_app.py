@@ -1,12 +1,22 @@
 import streamlit as st
 from firebase_admin import credentials, db, initialize_app
+from firebase_admin import credentials, initialize_app, get_app
+from firebase_admin.exceptions import FirebaseError
 import pandas as pd
 import time
 
+
 # Firebase setup
 if "firebase_initialized" not in st.session_state:
-    cred = credentials.Certificate("app/festival-game-6f53a-firebase-adminsdk-x47fu-bdd2a42766.json")  # Download from Firebase
-    initialize_app(cred, {'databaseURL': 'https://festival-game-6f53a-default-rtdb.europe-west1.firebasedatabase.app/'})
+    try:
+        # Try to get the default app
+        get_app()
+    except FirebaseError:
+        # Initialize only if the app is not already initialized
+        cred = credentials.Certificate("app/festival-game-6f53a-firebase-adminsdk-x47fu-bdd2a42766.json")
+        initialize_app(cred, {
+            'databaseURL': 'https://festival-game-6f53a-default-rtdb.europe-west1.firebasedatabase.app/'
+        })
     st.session_state.firebase_initialized = True
 
 # Database references
