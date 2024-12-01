@@ -20,7 +20,7 @@ class BarGraph():
         self._timesteps = np.size(self._data, axis=1) // self._concerts
         self._timejumps = 1/self._timesteps
     
-    def plot_data(self, max_columns=10):
+    def plot_data(self, max_columns=5):
         """
         Plot data for each concert. Each plot shows the number of agents at each timestep,
         including how many are queuing for the next concert.
@@ -40,7 +40,7 @@ class BarGraph():
         fig, axes = plt.subplots(rows, max_columns, figsize=(max_columns * 3, rows * 3))
         axes = np.array(axes).reshape(-1)  # Flatten the axes for easy indexing
 
-        bar_width_concert = self._timejumps * 0.8  # Set a smaller width for bars
+        bar_width_concert = self._timejumps * 0.8
         bar_width_queue = self._timejumps * 0.8
         offset = bar_width_concert / 3  # Offset to separate bars
 
