@@ -53,3 +53,12 @@ def get_responses(round_num):
     results = cursor.fetchall()
     conn.close()
     return results
+
+# Reset game state and responses
+def reset_game():
+    conn = sqlite3.connect("game_state.db")
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM game_state")
+    cursor.execute("DELETE FROM responses")
+    conn.commit()
+    conn.close()

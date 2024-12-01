@@ -1,5 +1,5 @@
 import streamlit as st
-from db_handler import init_db, update_state, get_state, add_response, get_responses
+from db_handler import init_db, update_state, get_state, add_response, get_responses, reset_game
 
 # Initialize the database
 init_db()
@@ -14,7 +14,11 @@ round_active = get_state("round_active")
 
 if role == "Game Master":
     st.header("Game Master Dashboard")
-    
+
+    # Update (refresh) the page
+    if st.button("Update"):
+        st.experimental_rerun()
+
     # Start a new round
     if st.button("Start New Round"):
         new_round = int(current_round) + 1 if current_round else 1
@@ -37,6 +41,12 @@ if role == "Game Master":
             st.write("No responses yet for this round.")
     else:
         st.write("No round is active.")
+
+    # Reset Game
+    if st.button("Reset Game"):
+        reset_game()
+        st.warning("Game has been reset!")
+
 
 elif role == "Player":
     st.header("Player Interface")
