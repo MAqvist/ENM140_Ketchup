@@ -1,5 +1,5 @@
 import streamlit as st
-from db_handler import init_db, update_state, get_state, add_response, get_responses, reset_game
+from db_handler import init_db, update_state, get_state, add_response, get_responses, reset_game, has_submitted
 
 # Initialize the database
 init_db()
@@ -51,9 +51,9 @@ if role == "Game Master":
 elif role == "Player":
     st.header("Player Interface")
 
-    # Update (refresh) the page
+    # Update (refresh) the page using a button
     if st.button("Update"):
-        st.session_state["refresh"] = not st.session_state.get("refresh", False)
+        st.experimental_rerun()
 
     # Get current round and state
     current_round = get_state("current_round")
@@ -66,9 +66,14 @@ elif role == "Player":
 
         if st.button("Submit"):
             if player_name and answer:
-                add_response(player_name, int(current_round), answer)
-                st.success("Answer submitted!")
+                # Check if the player has already submitted
+                if has_submitted(player_name, int(current_round)):
+                    st.error("You have already submitted a response for this round!")
+                else:
+                    add_response(player_name, int(current_round), answer)
+                    st.success("Answer submitted!")
             else:
                 st.error("Please enter both name and answer.")
     else:
         st.warning("No active round. Wait for the game master to start the next round.")
+

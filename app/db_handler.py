@@ -62,3 +62,12 @@ def reset_game():
     cursor.execute("DELETE FROM responses")
     conn.commit()
     conn.close()
+
+# Check if a player has already submitted a response for the current round
+def has_submitted(player, round_num):
+    conn = sqlite3.connect("game_state.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT 1 FROM responses WHERE player = ? AND round = ?", (player, round_num))
+    result = cursor.fetchone()
+    conn.close()
+    return result is not None
