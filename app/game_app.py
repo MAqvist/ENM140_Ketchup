@@ -51,6 +51,14 @@ if role == "Game Master":
 elif role == "Player":
     st.header("Player Interface")
 
+    # Update (refresh) the page
+    if st.button("Update"):
+        st.session_state["refresh"] = not st.session_state.get("refresh", False)
+
+    # Get current round and state
+    current_round = get_state("current_round")
+    round_active = get_state("round_active")
+
     if round_active == "true":
         st.write(f"Round {current_round} is active! Submit your answer.")
         player_name = st.text_input("Enter your name:")
