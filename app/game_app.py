@@ -53,7 +53,7 @@ elif role == "Player":
 
     # Update (refresh) the page using a button
     if st.button("Update"):
-        st.experimental_rerun()
+        st.session_state["refresh"] = not st.session_state.get("refresh", False)
 
     # Get current round and state
     current_round = get_state("current_round")
