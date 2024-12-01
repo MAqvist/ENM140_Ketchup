@@ -1,55 +1,56 @@
 import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-import time
+from db_handler import init_db, update_state, get_state, add_response, get_responses
 
-# Initialize session state to store responses
-if "responses" not in st.session_state:
-    st.session_state["responses"] = []
+# Initialize the database
+init_db()
 
-# Title and instructions
-st.title("Game Input and Real-Time Visualization")
-st.write("Welcome to the game! Answer the question within the given time.")
+# Selection screen
+st.title("Game App")
+role = st.radio("Select your role:", ["Player", "Game Master"])
 
-# Define a question and timer duration
-question = "How much utility do you gain from this activity? (0-10)"
-timer_duration = 10  # seconds
+# Shared database connection setup
+current_round = get_state("current_round")
+round_active = get_state("round_active")
 
-# Timer logic
-if "start_time" not in st.session_state:
-    st.session_state["start_time"] = time.time()
+if role == "Game Master":
+    st.header("Game Master Dashboard")
+    
+    # Start a new round
+    if st.button("Start New Round"):
+        new_round = int(current_round) + 1 if current_round else 1
+        update_state("current_round", str(new_round))
+        update_state("round_active", "true")
+        st.success(f"Started Round {new_round}")
 
-elapsed_time = time.time() - st.session_state["start_time"]
-remaining_time = max(timer_duration - elapsed_time, 0)
+    # End the current round
+    if st.button("End Current Round"):
+        update_state("round_active", "false")
+        st.warning("Round ended!")
 
-# Display question and time remaining
-st.write(f"Question: {question}")
-st.write(f"Time remaining: {int(remaining_time)} seconds")
+    # View Responses
+    st.write("Responses for Current Round:")
+    if current_round:
+        responses = get_responses(int(current_round))
+        if responses:
+            st.table(responses)
+        else:
+            st.write("No responses yet for this round.")
+    else:
+        st.write("No round is active.")
 
-# Input form
-if remaining_time > 0:
-    answer = st.number_input("Your Answer:", min_value=0, max_value=10, step=1, key="current_input")
-    if st.button("Submit"):
-        st.session_state["responses"].append(answer)
-        st.success("Answer submitted!")
-else:
-    st.warning("Time is up! Waiting for the next round.")
+elif role == "Player":
+    st.header("Player Interface")
 
-# Reset timer for the next round (optional for gameplay)
-if remaining_time == 0 and st.button("Next Round"):
-    st.session_state["start_time"] = time.time()
+    if round_active == "true":
+        st.write(f"Round {current_round} is active! Submit your answer.")
+        player_name = st.text_input("Enter your name:")
+        answer = st.text_input("Your Answer:")
 
-# Display current responses
-if st.session_state["responses"]:
-    st.write("Responses so far:", st.session_state["responses"])
-
-    # Perform computations
-    df = pd.DataFrame(st.session_state["responses"], columns=["Answers"])
-    average_score = df["Answers"].mean()
-    st.write(f"Average Utility: {average_score:.2f}")
-
-    # Visualize responses
-    st.bar_chart(df["Answers"].value_counts(sort=False))
-
-# Footer for updates
-st.write("This app updates automatically as players submit answers.")
+        if st.button("Submit"):
+            if player_name and answer:
+                add_response(player_name, int(current_round), answer)
+                st.success("Answer submitted!")
+            else:
+                st.error("Please enter both name and answer.")
+    else:
+        st.warning("No active round. Wait for the game master to start the next round.")
