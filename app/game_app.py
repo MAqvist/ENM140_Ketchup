@@ -17,7 +17,7 @@ if role == "Game Master":
 
     # Update (refresh) the page
     if st.button("Update"):
-        st.experimental_rerun()
+        st.session_state["refresh"] = not st.session_state.get("refresh", False)
 
     # Start a new round
     if st.button("Start New Round"):
