@@ -76,11 +76,12 @@ class BarGraph():
         plt.show()
 
 class SeminarGraph():
-    def __init__(self, names, responses, timesteps):
+    def __init__(self, names, responses, timesteps, concert_number):
         self._names = np.array(names, dtype=str)
         self._responses = np.array(responses, dtype=float)
         self._timesteps = timesteps
         self._attendees = np.array(self._timesteps)
+        self._concert_number = concert_number
         self.__sort_lists()
     
     def __sort_lists(self):
@@ -92,29 +93,36 @@ class SeminarGraph():
         self._responses = response_sorted
 
     def create_plot_data(self):
-        self._xx = np.arange(0, self._timesteps)
+        self._xx = np.arange(0, self._timesteps+1)
         self._yy = np.ones(len(self._xx)) * len(self._names)
         y_offset = np.zeros(len(self._xx))
         for response in self._responses:
             self._yy[int(response*(self._timesteps)):] -= 1
 
+        plt.bar(0, len(self._names), color='grey', alpha=.4)
+        for i in range(0, len(self._xx)):
+            plt.bar(self._xx[i], self._yy[i-1],color='grey', alpha=.4)
+
+        plt.bar(self._xx[:-1], self._yy[:-1], color='cornflowerblue', edgecolor='k')
+
         for idx, leaver in enumerate(self._responses):
             i = int(leaver*self._timesteps)-1
-            if i >= 9:
+            if i >= 10:
                 break
             x = (leaver*self._timesteps)
             y = (self._yy[i+1])+.5+y_offset[i]
             print(int(leaver*self._timesteps))
-            plt.scatter(x, y)
-            plt.text(x+.25, y-.05, self._names[idx])
+            plt.scatter(x, y, s=128, edgecolors='k')
+            plt.text(x+.5, y, self._names[idx], verticalalignment='center')
             y_offset[i] += 1
             
-        plt.bar(self._xx, self._yy)
-        print(self._yy)
-        plt.xticks(np.arange(0, self._timesteps))
+        plt.xticks(np.arange(0, self._timesteps+1))
+        plt.xlim([-.9, self._timesteps+2.5])
+        plt.ylabel('Attendees')
+        plt.xlabel('Timestep')
+        plt.title('Concert {}'.format(self._concert_number))
         
         plt.show()
-
 
 
 def get_colors_from_palette(palette_name, num_colors):
@@ -193,10 +201,10 @@ def generate_agents(num_agents, concerts, timesteps):
 # hej = BarGraph(A)
 # hej.plot_data()
 
-names = ['lucas', 'august', 'malte', 'mathilda', 'diddy', 'tits', 'tats']
-responses = [0.9, 0.2, 0.2, 1., .5, .8, .3]
+names = ['lucas', 'august', 'malte', 'mathilda', 'diddy', 'tits', 'tats', 'johan', 'stefan', 'claes', 'erik', 'svenne', 'miklos', 'jasmin', 'gunilla','ingrid']
+responses = [0.9, 0.2, 0.2, 1., .5, .8, .0, .7, .7, .7, .8, .8, .9, 1, 1, 1]
 
-sem = SeminarGraph(names, responses, 10)
+sem = SeminarGraph(names, responses, 10, 2)
 sem.create_plot_data()
 
 # Seminar
