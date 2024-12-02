@@ -71,3 +71,37 @@ def has_submitted(player, round_num):
     result = cursor.fetchone()
     conn.close()
     return result is not None
+
+# Add utility for each player for the current round
+def add_utility(player, round_num, utility):
+    conn = sqlite3.connect("game_state.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO utilities (player, round, utility) VALUES (?, ?, ?)", (player, round_num, utility))
+    conn.commit()
+    conn.close()
+
+# Get all utilities for a round
+def get_utilities(round_num):
+    conn = sqlite3.connect("game_state.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT player, utility FROM utilities WHERE round = ?", (round_num,))
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+# Add player position for the current round
+def add_position(player, round_num, position):
+    conn = sqlite3.connect("game_state.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO positions (player, round, position) VALUES (?, ?, ?)", (player, round_num, position))
+    conn.commit()
+    conn.close()
+
+# Get all positions for a round
+def get_positions(round_num):
+    conn = sqlite3.connect("game_state.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT player, position FROM positions WHERE round = ?", (round_num,))
+    results = cursor.fetchall()
+    conn.close()
+    return results
