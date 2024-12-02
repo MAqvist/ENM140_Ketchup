@@ -33,6 +33,7 @@ if role == "Game Master":
             update_state("current_round", str(new_round))
             update_state("round_active", "true")
             st.success(f"Started Round {new_round}")
+            st.session_state["refresh"] = not st.session_state.get("refresh", False)
 
         # End the current round
         if st.button("End Current Round"):
