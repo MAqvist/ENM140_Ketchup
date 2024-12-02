@@ -75,6 +75,48 @@ class BarGraph():
         plt.tight_layout()
         plt.show()
 
+class SeminarGraph():
+    def __init__(self, names, responses, timesteps):
+        self._names = np.array(names, dtype=str)
+        self._responses = np.array(responses, dtype=float)
+        self._timesteps = timesteps
+        self._attendees = np.array(self._timesteps)
+        self.__sort_lists()
+    
+    def __sort_lists(self):
+        idx_sorted = np.argsort(self._responses)
+        name_sorted = np.array([self._names[i] for i in idx_sorted])
+        response_sorted = np.array([self._responses[i] for i in idx_sorted])
+
+        self._names = name_sorted
+        self._responses = response_sorted
+
+    def create_plot_data(self):
+        self._xx = np.arange(0, self._timesteps)
+        self._yy = np.ones(len(self._xx)) * len(self._names)
+        y_offset = np.zeros(len(self._xx))
+        for response in self._responses:
+            self._yy[int(response*(self._timesteps)):] -= 1
+
+        for idx, leaver in enumerate(self._responses):
+            i = int(leaver*self._timesteps)-1
+            if i >= 9:
+                break
+            x = (leaver*self._timesteps)
+            y = (self._yy[i+1])+.5+y_offset[i]
+            print(int(leaver*self._timesteps))
+            plt.scatter(x, y)
+            plt.text(x+.25, y-.05, self._names[idx])
+            y_offset[i] += 1
+            
+        plt.bar(self._xx, self._yy)
+        print(self._yy)
+        plt.xticks(np.arange(0, self._timesteps))
+        
+        plt.show()
+
+
+
 def get_colors_from_palette(palette_name, num_colors):
         """
         Generate a sequence of colors from a Matplotlib color palette.
@@ -133,20 +175,29 @@ def generate_agents(num_agents, concerts, timesteps):
     return agents
 
 # Example Usage
-num_agents = 100
-concerts = 3
-timesteps = 3
-agents = generate_agents(num_agents, concerts, timesteps)
+# num_agents = 100
+# concerts = 3
+# timesteps = 3
+# agents = generate_agents(num_agents, concerts, timesteps)
 
 
-A = np.zeros([concerts, int(timesteps*concerts)])
+# A = np.zeros([concerts, int(timesteps*concerts)])
 
-# Make dataset
-for agent in agents:
-    t = 0
-    for i in agent:
-        A[i, t] += 1
-        t += 1
+# # Make dataset
+# for agent in agents:
+#     t = 0
+#     for i in agent:
+#         A[i, t] += 1
+#         t += 1
 
-hej = BarGraph(A)
-hej.plot_data()
+# hej = BarGraph(A)
+# hej.plot_data()
+
+names = ['lucas', 'august', 'malte', 'mathilda', 'diddy', 'tits', 'tats']
+responses = [0.9, 0.2, 0.2, 1., .5, .8, .3]
+
+sem = SeminarGraph(names, responses, 10)
+sem.create_plot_data()
+
+# Seminar
+# Addera kombinerad barplot med isch scatter vem som sticker på tidsteg t
