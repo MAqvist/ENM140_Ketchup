@@ -60,11 +60,11 @@ if role == "Game Master":
                     next_round_utility = get_utility_nexts(str(int(current_round)-1), name)
                     print(f"next utility: {next_round_utility}")
                     if not next_round_utility:
-                        previous_round[name] = 0
+                        previous_round[name] = 0.0
                     else:
-                        previous_round[name] = next_round_utility[0]
+                        previous_round[name] = float(next_round_utility[0][0])
                 
-
+                print(f"previous round: {previous_round}")
                 utility, utility_factor_next = concert_utility(names, answers, previous_round, n_time_steps)
                 
                 for i, name in enumerate(names):
