@@ -74,6 +74,8 @@ def reset_game():
     cursor = conn.cursor()
     cursor.execute("DELETE FROM game_state")
     cursor.execute("DELETE FROM responses")
+    cursor.execute("DELETE FROM utilities")
+    cursor.execute("DELETE FROM utility_nexts")
     conn.commit()
     conn.close()
 

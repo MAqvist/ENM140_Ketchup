@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 class Agent: 
     def __init__(self, name: str, music_taste = 1, strategy = 1, nr_concerts = 3, festival_duration=9):
@@ -45,34 +46,21 @@ def get_waiting_utility():
     utility = -1 * waiting_factor
     return utility
 
-
-def concert_utility(names, leave_time, previous_round, time_steps_per_concert = 10):
-
+def concert_utility2(names, leave_time, previous_round, time_steps_per_concert = 10):
     """
     previous_round: {name: utility_scaler_position}
     """
     wating_utility = get_waiting_utility()
 
-    binary_leave_time = np.zeros((len(names), time_steps_per_concert))
-    utility_scaler_position = np.zeros(len(names))
-    for i, name in enumerate(names):
-        if name in previous_round:
-            utility_scaler_position[i] = previous_round[name]
-
     utility = np.zeros((len(names), time_steps_per_concert))
-    # position = np.zeros(len(names))
     utility_factor_for_next_concert = np.zeros(len(names))
-
-    for i, time in enumerate(leave_time):
-        binary_leave_time[i, time-1] = 1
+    positions = [None] * len(names)
 
     n = len(names)
     n_cols = np.floor(n ** 0.5).astype(int)
     n_rows = n // n_cols
     if n % n_cols != 0:
         n_rows += 1
-    
-    print(n_rows, n_cols)
         
     next_concert = Concert(capacity=len(names), 
                            duration=time_steps_per_concert,
@@ -81,18 +69,22 @@ def concert_utility(names, leave_time, previous_round, time_steps_per_concert = 
                            nr_of_agents=len(names)
                            )
 
-    for time in range(time_steps_per_concert):
+    pos_counter = 0
+    for time in range(time_steps_per_concert+1):
+        print(time, leave_time)
         if time in leave_time:
             idx = [i for i, t in enumerate(leave_time) if t == time]
             for i in idx:
-                
-                agent = Agent(names[i])
                 utility[i, time:] = wating_utility
-                utility[i, :time] = utility_scaler_position[i]
-                agent.position_utility = get_placement_utility(next_concert)
-                utility_factor_for_next_concert[i] = agent.position_utility
+                utility[i, :time] = previous_round[names[i]]
+                print(f"previous round inside: {previous_round[names[i]]}")
+                utility_factor_for_next_concert[i] = previous_round[names[i]]
+                get_placement_utility(next_concert)
                 next_concert.add_agent()
-                # position[i] = agent.position
+                positions[i] = pos_counter
 
+    return utility, utility_factor_for_next_concert, positions
 
-    return utility, utility_factor_for_next_concert
+def string_to_color(s):
+    random.seed(hash(s))
+    return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
