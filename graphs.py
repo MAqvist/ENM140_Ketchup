@@ -112,7 +112,7 @@ class SeminarGraph():
             x = (leaver*self._timesteps)
             y = (self._yy[i+1])+.5+y_offset[i]
             print(int(leaver*self._timesteps))
-            plt.scatter(x, y, s=128, edgecolors='k')
+            plt.scatter(x, y, s=128, edgecolors='k', c=string_to_color(self._names[idx]))
             plt.text(x+.5, y, self._names[idx], verticalalignment='center')
             y_offset[i] += 1
             
@@ -124,6 +124,9 @@ class SeminarGraph():
         
         plt.show()
 
+def string_to_color(s):
+    random.seed(hash(s))
+    return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 def get_colors_from_palette(palette_name, num_colors):
         """
