@@ -18,6 +18,7 @@ round_active = get_state("round_active")
 
 gm_pw = "pw"
 n_time_steps = 10
+max_concerts = 10
 
 if role == "Game Master":
     st.header("Game Master Dashboard")
@@ -64,7 +65,7 @@ if role == "Game Master":
                         previous_round[name] = float(next_round_utility[0][0])
                 
                 print(f"previous round: {previous_round}")
-                utility, utility_factor_next, positions = concert_utility2(names, answers, previous_round, n_time_steps)
+                utility, utility_factor_next, _ = concert_utility2(names, answers, previous_round, n_time_steps)
                 print(f"utility: {utility}")
                 print(f"utility factor next: {utility_factor_next}")
                 for i, name in enumerate(names):
@@ -82,8 +83,9 @@ if role == "Game Master":
                 fig, ax = plt.subplots(figsize=(10, 6))
                 ax.plot([0, n_cols-1], [n_rows, n_rows], 'k-', lw=4) # Stage line
                 ax.text((n_cols-1)/2, n_rows + 0.5, 'Stage', ha='center', va='center', fontsize=30, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
-
-                for idx, (i, j) in enumerate(possible_positions):
+                positions = sorted(range(len(answers)), key=lambda i: answers[i])
+                for idx in positions:
+                    i, j = possible_positions[idx]
                     if idx < n // n_cols * n_cols:
                         x = j
                         y = n_rows - 1 - i

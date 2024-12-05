@@ -70,3 +70,15 @@ plt.ylim(-1, n_rows + 1)
 plt.axis('off')
 plt.show()
 # %%
+steps = 10
+a = np.zeros(steps+1) + (-1)
+leave = 5
+a[:leave+1] = 2.5
+print(a)
+plt.plot(np.cumsum(a))
+plt.grid()
+plt.xticks(range(11))
+# %%
+b = np.zeros((2, 3)) +1 
+print(b)
+# %%
