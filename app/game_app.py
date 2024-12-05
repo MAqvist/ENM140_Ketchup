@@ -1,6 +1,9 @@
 import streamlit as st
-from db_handler import init_db, update_state, get_state, add_response, get_responses, reset_game, has_submitted
+from db_handler import init_db, update_state, get_state, add_response, get_responses, reset_game, has_submitted, get_utility_nexts, add_utility_next, add_utility, get_utilities
 import matplotlib.pyplot as plt
+from game_engine import concert_utility2, string_to_color
+import numpy as np
+import pandas as pd
 
 # Initialize the database
 init_db()
@@ -14,6 +17,7 @@ current_round = get_state("current_round")
 round_active = get_state("round_active")
 
 gm_pw = "password"
+n_time_steps = 10
 
 if role == "Game Master":
     st.header("Game Master Dashboard")
@@ -41,29 +45,104 @@ if role == "Game Master":
             st.warning("Round ended!")
 
         # View Responses
-        st.write("Responses for Current Round:")
+        st.write(f"Concert number: {current_round}")
         if current_round:
             responses = get_responses(int(current_round))
             if responses:
-                st.table(responses)
-
                 # Extract answers for histogram
                 answers = [int(response[1]) for response in responses]
                 names = [response[0] for response in responses]
-                
-                # Create histogram
-                fig, ax = plt.subplots()
-                ax.bar(names, answers)
-                ax.set_xlabel('Names')
-                ax.set_ylabel('Answers')
-                ax.set_title(f'Responses for Round {current_round}')
 
-                # Display histogram in Streamlit
+                # Calculate utility
+                previous_round = {}
+                for name in names:
+                    next_round_utility = get_utility_nexts(str(int(current_round)-1), name)
+                    print(f"next utility: {next_round_utility}")
+                    if not next_round_utility:
+                        previous_round[name] = 0.0
+                    else:
+                        previous_round[name] = float(next_round_utility[0][0])
+                
+                print(f"previous round: {previous_round}")
+                utility, utility_factor_next, positions = concert_utility2(names, answers, previous_round, n_time_steps)
+                print(f"utility: {utility}")
+                for i, name in enumerate(names):
+                    add_utility_next(name, current_round, utility_factor_next[i])
+                    add_utility(name, current_round, np.sum(utility[i]))
+
+                # plot positons and stage
+                n = len(names)
+                n_cols = np.floor(n ** 0.5).astype(int)
+                n_rows = n // n_cols
+                if n % n_cols != 0:
+                    n_rows += 1
+                possible_positions = [(i, j) for i in range(n_rows) for j in range(n_cols)]
+                
+                fig, ax = plt.subplots(figsize=(10, 6))
+                ax.plot([0, n_cols-1], [n_rows, n_rows], 'k-', lw=4) # Stage line
+                ax.text((n_cols-1)/2, n_rows + 0.5, 'Stage', ha='center', va='center', fontsize=30, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+
+                for idx, (i, j) in enumerate(possible_positions):
+                    if idx < n // n_cols * n_cols:
+                        x = j
+                        y = n_rows - 1 - i
+                        ax.text(x, y+(n_rows*0.1), names[idx], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+                        ax.scatter(x, y, s=500, c=string_to_color(names[idx]), edgecolor='black', linewidth=2)
+                # Center last row
+                if n % n_cols != 0:
+                    last_row_start = (n_cols - (n % n_cols)) / 2
+                    for idx in range(n - (n % n_cols), n):
+                        x = last_row_start + (idx % n_cols)
+                        y = 0
+                        ax.text(x, y+(n_rows*0.1), names[idx], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+                        ax.scatter(x, y, s=500, c=string_to_color(names[idx]), edgecolor='black', linewidth=2)
+
+                # Add row numbers
+                for i in range(n_rows):
+                    ax.text(-0.5, n_rows - 1 - i, f"Row {i+1}", ha='right', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+
+                ax.axis('off')
+                ax.set_xlim(-1, n_cols)
+                ax.set_ylim(-1, n_rows + 1)
                 st.pyplot(fig)
+
+                # Plot lines
+                fig, ax = plt.subplots()
+                for i, name in enumerate(names):
+                    ax.plot(range(n_time_steps), np.cumsum(utility[i]), label=name)
+                
+                ax.set_xlabel("Time")
+                ax.set_ylabel("Cumulative Utility")
+                ax.legend()
+                ax.grid()
+                st.pyplot(fig)
+
+                # Sum up total utility so far for all players who have answered this round
+                total_utility_so_far = {}
+                for round in range(1, int(current_round)+1):
+                    utilities = get_utilities(round)
+                    for utilitie in utilities:
+                        name = utilitie[0]
+                        value = utilitie[1]
+                        if name in total_utility_so_far:
+                            total_utility_so_far[name] += value
+                        else:
+                            total_utility_so_far[name] = value
+
+                # Display total utility so far
+                st.write("Total Utility So Far:")
+                st.table(pd.DataFrame(total_utility_so_far.items(), columns=["Name", "Total Utility"]))
+
+                # Display individual utility for this round
+                st.write("Utility for this round:")
+                my_dict = {'name' : names, 'leave_time' : answers, 'utility' : np.sum(utility, axis=1),'utility_factor_current' : list(previous_round.values()), 'utility_factor_next' : utility_factor_next}
+                st.table(pd.DataFrame(my_dict))
+
             else:
                 st.write("No responses yet for this round.")
         else:
             st.write("No round is active.")
+
 
         # Reset Game
         if st.button("Reset Game"):
@@ -86,7 +165,7 @@ elif role == "Player":
         st.write(f"Round {current_round} is active! Submit your answer.")
         player_name = st.text_input("Enter your name:")
         # answer = st.text_input("Your Answer:")
-        answer = st.select_slider(f"Leave concert {current_round} at time:", options=range(0, 11))
+        answer = st.select_slider(f"Leave concert {current_round} at time:", options=range(0, n_time_steps+1))
 
         # if st.button("Submit"):
         if st.button("Submit"):

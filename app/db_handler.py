@@ -17,6 +17,20 @@ def init_db():
             answer TEXT
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS utilities (
+            player TEXT,
+            round INTEGER,
+            utility INTEGER
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS utility_nexts (
+            player TEXT,
+            round INTEGER,
+            utility_next INTEGER
+        )
+    """)
     conn.commit()
     conn.close()
 
@@ -60,6 +74,8 @@ def reset_game():
     cursor = conn.cursor()
     cursor.execute("DELETE FROM game_state")
     cursor.execute("DELETE FROM responses")
+    cursor.execute("DELETE FROM utilities")
+    cursor.execute("DELETE FROM utility_nexts")
     conn.commit()
     conn.close()
 
@@ -105,3 +121,21 @@ def get_positions(round_num):
     results = cursor.fetchall()
     conn.close()
     return results
+
+# Add utility factor for next concert for each player for the current round
+def add_utility_next(player, round_num, utility_next):
+    conn = sqlite3.connect("game_state.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO utility_nexts (player, round, utility_next) VALUES (?, ?, ?)", (player, round_num, utility_next))
+    conn.commit()
+    conn.close()
+
+# Get all utility factors for next concert for a round for a name
+def get_utility_nexts(round_num, name):
+    conn = sqlite3.connect("game_state.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT utility_next FROM utility_nexts WHERE round = ? AND player = ?", (round_num, name))
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
