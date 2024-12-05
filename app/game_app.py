@@ -18,7 +18,7 @@ round_active = get_state("round_active")
 
 gm_pw = "pw"
 n_time_steps = 10
-max_concerts = 10
+max_concerts = 2
 
 if role == "Game Master":
     st.header("Game Master Dashboard")
@@ -47,7 +47,7 @@ if role == "Game Master":
 
         # View Responses
         st.write(f"Concert number: {current_round}")
-        if current_round:
+        if int(current_round) <= max_concerts:
             responses = get_responses(int(current_round))
             if responses:
                 # Extract answers for histogram
@@ -84,21 +84,20 @@ if role == "Game Master":
                 ax.plot([0, n_cols-1], [n_rows, n_rows], 'k-', lw=4) # Stage line
                 ax.text((n_cols-1)/2, n_rows + 0.5, 'Stage', ha='center', va='center', fontsize=30, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
                 positions = sorted(range(len(answers)), key=lambda i: answers[i])
-                for idx in positions:
-                    i, j = possible_positions[idx]
+                for idx, (i, j) in enumerate(possible_positions):
                     if idx < n // n_cols * n_cols:
                         x = j
                         y = n_rows - 1 - i
-                        ax.text(x, y+(n_rows*0.1), names[idx], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
-                        ax.scatter(x, y, s=500, c=string_to_color(names[idx]), edgecolor='black', linewidth=2)
+                        ax.text(x, y+(n_rows*0.1), names[positions[idx]], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+                        ax.scatter(x, y, s=500, c=string_to_color(names[positions[idx]]), edgecolor='black', linewidth=2)
                 # Center last row
                 if n % n_cols != 0:
                     last_row_start = (n_cols - (n % n_cols)) / 2
                     for idx in range(n - (n % n_cols), n):
                         x = last_row_start + (idx % n_cols)
                         y = 0
-                        ax.text(x, y+(n_rows*0.1), names[idx], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
-                        ax.scatter(x, y, s=500, c=string_to_color(names[idx]), edgecolor='black', linewidth=2)
+                        ax.text(x, y+(n_rows*0.1), names[positions[idx]], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+                        ax.scatter(x, y, s=500, c=string_to_color(names[positions[idx]]), edgecolor='black', linewidth=2)
 
                 # Add row numbers
                 for i in range(n_rows):
@@ -144,6 +143,33 @@ if role == "Game Master":
 
             else:
                 st.write("No responses yet for this round.")
+        elif int(current_round) > max_concerts:
+            st.write("Game Over!")
+            st.write("Results:")
+            all_utilities = {}
+            for round in range(1, max_concerts+1):
+                utilities = get_utilities(round)
+                for utilitie in utilities:
+                    name = utilitie[0]
+                    value = utilitie[1]
+                    if name in all_utilities:
+                        all_utilities[name].append(value)
+                    else:
+                        all_utilities[name] = [value]
+
+            # Plot cumulative utility for each player
+            fig, ax = plt.subplots()
+            for name, utility_list in all_utilities.items():
+                cumulative_utility = np.cumsum(utility_list)
+                ax.plot(range(1, len(cumulative_utility) + 1), cumulative_utility, label=name, color=string_to_color(name))
+
+            ax.set_xticks(range(1, max_concerts + 1))
+            ax.set_xlabel("Concert Number")
+            ax.set_ylabel("Cumulative Utility")
+            ax.legend()
+            ax.grid()
+            st.pyplot(fig)
+                        
         else:
             st.write("No round is active.")
 

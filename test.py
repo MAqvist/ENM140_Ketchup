@@ -82,3 +82,42 @@ plt.xticks(range(11))
 b = np.zeros((2, 3)) +1 
 print(b)
 # %%
+n = 5
+names = generate_random_names(n)
+leave_times = [10, 4, 7, 2, 5]
+
+n_cols = np.floor(n ** 0.5).astype(int)
+n_rows = n // n_cols
+if n % n_cols != 0:
+    n_rows += 1
+possible_positions = [(i, j) for i in range(n_rows) for j in range(n_cols)]
+                
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.plot([0, n_cols-1], [n_rows, n_rows], 'k-', lw=4) # Stage line
+ax.text((n_cols-1)/2, n_rows + 0.5, 'Stage', ha='center', va='center', fontsize=30, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+positions = sorted(range(len(leave_times)), key=lambda i: leave_times[i])
+
+print(positions)
+print(possible_positions)
+print(names)
+print(leave_times)
+
+for idx, (i, j) in enumerate(possible_positions):
+    if idx < n // n_cols * n_cols:
+        x = j
+        y = n_rows - 1 - i
+        ax.text(x, y+(n_rows*0.1), names[positions[idx]], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+        ax.scatter(x, y, s=500, c=string_to_color(names[positions[idx]]), edgecolor='black', linewidth=2)
+
+# Center last row
+if n % n_cols != 0:
+    last_row_start = (n_cols - (n % n_cols)) / 2
+    for idx in range(n - (n % n_cols), n):
+        x = last_row_start + (idx % n_cols)
+        y = 0
+        ax.text(x, y+(n_rows*0.1), names[positions[idx]], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+        ax.scatter(x, y, s=500, c=string_to_color(names[positions[idx]]), edgecolor='black', linewidth=2)
+
+# Add row numbers
+
+# %%
