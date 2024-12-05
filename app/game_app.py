@@ -66,6 +66,7 @@ if role == "Game Master":
                 print(f"previous round: {previous_round}")
                 utility, utility_factor_next, positions = concert_utility2(names, answers, previous_round, n_time_steps)
                 print(f"utility: {utility}")
+                print(f"utility factor next: {utility_factor_next}")
                 for i, name in enumerate(names):
                     add_utility_next(name, current_round, utility_factor_next[i])
                     add_utility(name, current_round, np.sum(utility[i]))
@@ -109,8 +110,9 @@ if role == "Game Master":
                 # Plot lines
                 fig, ax = plt.subplots()
                 for i, name in enumerate(names):
-                    ax.plot(range(n_time_steps), np.cumsum(utility[i]), label=name)
+                    ax.plot(range(n_time_steps+1), np.cumsum(utility[i]), label=name, color=string_to_color(name))
                 
+                ax.set_xticks(range(n_time_steps+1))
                 ax.set_xlabel("Time")
                 ax.set_ylabel("Cumulative Utility")
                 ax.legend()

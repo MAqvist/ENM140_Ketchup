@@ -52,7 +52,7 @@ def concert_utility2(names, leave_time, previous_round, time_steps_per_concert =
     """
     wating_utility = get_waiting_utility()
 
-    utility = np.zeros((len(names), time_steps_per_concert))
+    utility = np.zeros((len(names), time_steps_per_concert+1)) + wating_utility
     utility_factor_for_next_concert = np.zeros(len(names))
     positions = [None] * len(names)
 
@@ -75,11 +75,8 @@ def concert_utility2(names, leave_time, previous_round, time_steps_per_concert =
         if time in leave_time:
             idx = [i for i, t in enumerate(leave_time) if t == time]
             for i in idx:
-                utility[i, time:] = wating_utility
-                utility[i, :time] = previous_round[names[i]]
-                print(f"previous round inside: {previous_round[names[i]]}")
-                utility_factor_for_next_concert[i] = previous_round[names[i]]
-                get_placement_utility(next_concert)
+                utility[i, :time+1] = previous_round[names[i]]
+                utility_factor_for_next_concert[i] = get_placement_utility(next_concert)
                 next_concert.add_agent()
                 positions[i] = pos_counter
 
