@@ -16,7 +16,7 @@ role = st.radio("Select your role:", ["Player", "Game Master"])
 current_round = get_state("current_round")
 round_active = get_state("round_active")
 
-gm_pw = "password"
+gm_pw = "pw"
 n_time_steps = 10
 
 if role == "Game Master":
