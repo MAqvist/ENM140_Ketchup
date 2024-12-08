@@ -31,7 +31,7 @@ number_to_ordinal = [
 
 if role == "Game Master":
     # Auto-refresh every n seconds
-    st_autorefresh(interval=1000)  # Interval is in milliseconds
+    # st_autorefresh(interval=1000)  # Interval is in milliseconds
     
     st.header("Game Master Dashboard")
 
