@@ -1,4 +1,5 @@
 import sqlite3
+import numpy as np
 
 # Initialize the database
 def init_db():
@@ -21,7 +22,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS utilities (
             player TEXT,
             round INTEGER,
-            utility INTEGER
+            utility REAL
         )
     """)
     cursor.execute("""
@@ -89,21 +90,42 @@ def has_submitted(player, round_num):
     return result is not None
 
 # Add utility for each player for the current round
+import json
+
 def add_utility(player, round_num, utility):
+    utility = utility.tolist()
     conn = sqlite3.connect("game_state.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO utilities (player, round, utility) VALUES (?, ?, ?)", (player, round_num, utility))
+
+    # Check if a record already exists for this player and round
+    cursor.execute("SELECT 1 FROM utilities WHERE player = ? AND round = ?", (player, round_num))
+    if cursor.fetchone():
+        # print(f"Utility for player '{player}' in round {round_num} already exists. Skipping insert.")
+        pass
+    else:
+        utility_json = json.dumps(utility)  # Convert list to JSON
+        cursor.execute("INSERT INTO utilities (player, round, utility) VALUES (?, ?, ?)", (player, round_num, utility_json))
     conn.commit()
     conn.close()
 
+
 # Get all utilities for a round
-def get_utilities(round_num):
+def get_utilities(round_num, player_name):
     conn = sqlite3.connect("game_state.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT player, utility FROM utilities WHERE round = ?", (round_num,))
+    cursor.execute("SELECT utility FROM utilities WHERE round = ? AND player = ?", (round_num, player_name))
     results = cursor.fetchall()
     conn.close()
-    return results
+
+    utilities = []
+    for result in results:
+        try:
+            if result[0]:  # Ensure the value is not empty or None
+                utilities.append(json.loads(result[0]))
+        except json.JSONDecodeError as e:
+            print(f"Error decoding utility for round {round_num}, player {player_name}: {e}")
+    return utilities
+
 
 # Add player position for the current round
 def add_position(player, round_num, position):
@@ -126,7 +148,16 @@ def get_positions(round_num):
 def add_utility_next(player, round_num, utility_next):
     conn = sqlite3.connect("game_state.db")
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO utility_nexts (player, round, utility_next) VALUES (?, ?, ?)", (player, round_num, utility_next))
+
+    # Check if a record already exists for this player and round
+    cursor.execute("SELECT 1 FROM utility_nexts WHERE player = ? AND round = ?", (player, round_num))
+    if cursor.fetchone():  # If a record exists
+        # print(f"Utility factor for player '{player}' in round {round_num} already exists. Skipping insert.")
+        pass
+    else:
+        # Insert the utility factor if no record exists
+        cursor.execute("INSERT INTO utility_nexts (player, round, utility_next) VALUES (?, ?, ?)", (player, round_num, utility_next))
+        # print(f"Utility factor added for player '{player}' in round {round_num}.")
     conn.commit()
     conn.close()
 
@@ -135,7 +166,7 @@ def get_utility_nexts(round_num, name):
     conn = sqlite3.connect("game_state.db")
     cursor = conn.cursor()
     cursor.execute("SELECT utility_next FROM utility_nexts WHERE round = ? AND player = ?", (round_num, name))
-    results = cursor.fetchall()
+    results = cursor.fetchone()
     conn.close()
     return results
 

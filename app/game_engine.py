@@ -52,7 +52,7 @@ def concert_utility2(names, leave_time, previous_round, time_steps_per_concert =
     """
     wating_utility = get_waiting_utility()
 
-    utility = np.zeros((len(names), time_steps_per_concert+1)) + wating_utility
+    utility = np.zeros((len(names), time_steps_per_concert)) + wating_utility
     utility_factor_for_next_concert = np.zeros(len(names))
     positions = [None] * len(names)
 
@@ -71,7 +71,6 @@ def concert_utility2(names, leave_time, previous_round, time_steps_per_concert =
 
     pos_counter = 0
     for time in range(time_steps_per_concert+1):
-        print(time, leave_time)
         if time in leave_time:
             idx = [i for i, t in enumerate(leave_time) if t == time]
             for i in idx:
@@ -81,7 +80,3 @@ def concert_utility2(names, leave_time, previous_round, time_steps_per_concert =
                 positions[i] = pos_counter
 
     return utility, utility_factor_for_next_concert, positions
-
-def string_to_color(s):
-    random.seed(hash(s))
-    return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))

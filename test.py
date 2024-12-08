@@ -1,6 +1,7 @@
 #%% 
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
 def generate_random_names(n):
     first_names = ["John", "Jane", "Alex", "Emily", "Chris", "Katie", "Michael", "Sarah", "David", "Laura"]
@@ -10,7 +11,7 @@ def generate_random_names(n):
     for _ in range(n):
         first_name = random.choice(first_names)
         last_name = random.choice(last_names)
-        random_names.append(f"{first_name} {last_name}")
+        random_names.append(f"{first_name[0]}. {last_name}")
     
     return random_names
 
@@ -18,106 +19,100 @@ def string_to_color(s):
     random.seed(hash(s))
     return "#{:02x}{:02x}{:02x}".format(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
+for img_idx in range(5):
+    
+    n = 19
+    names = generate_random_names(n)
 
-# Example usage
-n = 40
+    n_cols = np.floor(n ** 0.5).astype(int)
+    n_rows = n // n_cols
+    if n % n_cols != 0:
+        n_rows += 1
+    
+    positions = [(i, j) for i in range(n_rows) for j in range(n_cols)]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot([0, n_cols-1], [n_rows, n_rows], 'k-', lw=4)  # Stage line
+    ax.text((n_cols-1)/2, n_rows + 0.5, 'Stage', ha='center', va='center', fontsize=30, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+    
+    for idx, (i, j) in enumerate(positions):
+        if idx < n // n_cols * n_cols:
+            x = j
+            y = n_rows - 1 - i
+            ax.text(x, y, names[idx], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+            ax.scatter(x, y+.5, s=500, c=string_to_color(names[idx]), edgecolor='black', linewidth=2)
+    
+    if n % n_cols != 0:
+        last_row_start = (n_cols - (n % n_cols)) / 2
+        for idx in range(n - (n % n_cols), n):
+            x = last_row_start + (idx % n_cols)
+            y = 0
+            ax.text(x, y, names[idx], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+            ax.scatter(x, y+.5, s=500, c=string_to_color(names[idx]), edgecolor='black', linewidth=2)
+    
+    for i in range(n_rows):
+        ax.text(-0.5, n_rows - 1 - i, f"Row {i+1}", ha='right', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+    
+    ax.set_xlim(-1, n_cols)
+    ax.set_ylim(-1, n_rows + 1)
+    ax.axis('off')
+    folder_name = 'figures'
+    import os
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+    plt.savefig(f'figures/concert_{img_idx+1}.png')
+    plt.close(fig)
+
+
+
+
+#%%
+fig, axs = plt.subplots(1, 5, figsize=(25, 6))  # Increased figure width and height for clarity
+
+n = 19
 names = generate_random_names(n)
-# Example usage
-for name in names:
-    print(f"{name}: {string_to_color(name)}")
 
-n_cols = np.floor(n ** 0.5).astype(int)
-n_rows = n // n_cols
-if n % n_cols != 0:
-    n_rows += 1
+for img_idx, ax in enumerate(axs):
 
-print(n_rows, n_cols)
+    random.shuffle(names)
 
-positions = [(i, j) for i in range(n_rows) for j in range(n_cols)]
-print(positions)
+    n_cols = np.floor(n ** 0.5).astype(int)
+    n_rows = n // n_cols
+    if n % n_cols != 0:
+        n_rows += 1
+    
+    positions = [(i, j) for i in range(n_rows) for j in range(n_cols)]
 
-import matplotlib.pyplot as plt
+    ax.plot([0, n_cols-1], [n_rows, n_rows], 'k-', lw=4)  # Stage line
+    ax.text((n_cols-1)/2, n_rows + 0.5, 'Stage', ha='center', va='center', fontsize=30, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+    
+    for idx, (i, j) in enumerate(positions):
+        if idx < n // n_cols * n_cols:
+            x = j
+            y = n_rows - 1 - i
+            ax.text(x, y, names[idx], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+            ax.scatter(x, y+.5, s=500, c=string_to_color(names[idx]), edgecolor='black', linewidth=2)
+    
+    if n % n_cols != 0:
+        last_row_start = (n_cols - (n % n_cols)) / 2
+        for idx in range(n - (n % n_cols), n):
+            x = last_row_start + (idx % n_cols)
+            y = 0
+            ax.text(x, y, names[idx], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+            ax.scatter(x, y+.5, s=500, c=string_to_color(names[idx]), edgecolor='black', linewidth=2)
+    
+    for i in range(n_rows):
+        ax.text(-0.5, n_rows - 1 - i, f"Row {i+1}", ha='right', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+    
+    ax.set_xlim(-1, n_cols)
+    ax.set_ylim(-1, n_rows + 1)
+    ax.axis('off')
 
-# Plot stage
-plt.figure(figsize=(10, 6))
-plt.plot([0, n_cols-1], [n_rows, n_rows], 'k-', lw=4)  # Stage line
-plt.text((n_cols-1)/2, n_rows + 0.5, 'Stage', ha='center', va='center', fontsize=30, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
-
-# Plot names as datapoints
-for idx, (i, j) in enumerate(positions):
-    if idx < n // n_cols * n_cols:
-        x = j
-        y = n_rows - 1 - i
-        plt.text(x, y, names[idx], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
-        plt.scatter(x, y+.5, s=500, c=string_to_color(names[idx]), edgecolor='black', linewidth=2)
-
-# Center last row
-if n % n_cols != 0:
-    last_row_start = (n_cols - (n % n_cols)) / 2
-    for idx in range(n - (n % n_cols), n):
-        x = last_row_start + (idx % n_cols)
-        y = 0
-        plt.text(x, y, names[idx], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
-        plt.scatter(x, y+.5, s=500, c=string_to_color(names[idx]), edgecolor='black', linewidth=2)
-
-# Add row numbers
-for i in range(n_rows):
-    plt.text(-0.5, n_rows - 1 - i, f"Row {i+1}", ha='right', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
+fig.tight_layout()  # Adjust layout to allow space for the arrow
+folder_name = 'figures'
+if not os.path.exists(folder_name):
+    os.makedirs(folder_name)
+plt.savefig(f'figures/concert_combined.png')
+plt.close(fig)
 
 
-plt.xlim(-1, n_cols)
-plt.ylim(-1, n_rows + 1)
-plt.axis('off')
-plt.show()
-# %%
-steps = 10
-a = np.zeros(steps+1) + (-1)
-leave = 5
-a[:leave+1] = 2.5
-print(a)
-plt.plot(np.cumsum(a))
-plt.grid()
-plt.xticks(range(11))
-# %%
-b = np.zeros((2, 3)) +1 
-print(b)
-# %%
-n = 5
-names = generate_random_names(n)
-leave_times = [10, 4, 7, 2, 5]
-
-n_cols = np.floor(n ** 0.5).astype(int)
-n_rows = n // n_cols
-if n % n_cols != 0:
-    n_rows += 1
-possible_positions = [(i, j) for i in range(n_rows) for j in range(n_cols)]
-                
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.plot([0, n_cols-1], [n_rows, n_rows], 'k-', lw=4) # Stage line
-ax.text((n_cols-1)/2, n_rows + 0.5, 'Stage', ha='center', va='center', fontsize=30, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
-positions = sorted(range(len(leave_times)), key=lambda i: leave_times[i])
-
-print(positions)
-print(possible_positions)
-print(names)
-print(leave_times)
-
-for idx, (i, j) in enumerate(possible_positions):
-    if idx < n // n_cols * n_cols:
-        x = j
-        y = n_rows - 1 - i
-        ax.text(x, y+(n_rows*0.1), names[positions[idx]], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
-        ax.scatter(x, y, s=500, c=string_to_color(names[positions[idx]]), edgecolor='black', linewidth=2)
-
-# Center last row
-if n % n_cols != 0:
-    last_row_start = (n_cols - (n % n_cols)) / 2
-    for idx in range(n - (n % n_cols), n):
-        x = last_row_start + (idx % n_cols)
-        y = 0
-        ax.text(x, y+(n_rows*0.1), names[positions[idx]], ha='center', va='center', fontsize=9, bbox=dict(facecolor='white', alpha=0.5, edgecolor='none'))
-        ax.scatter(x, y, s=500, c=string_to_color(names[positions[idx]]), edgecolor='black', linewidth=2)
-
-# Add row numbers
-
-# %%
