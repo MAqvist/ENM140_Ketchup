@@ -5,8 +5,6 @@ from game_engine import concert_utility2
 import numpy as np
 import pandas as pd
 import utilities as ut
-import time
-from streamlit_autorefresh import st_autorefresh
 
 # Initialize the database
 init_db()
