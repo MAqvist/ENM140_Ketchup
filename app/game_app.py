@@ -18,8 +18,8 @@ current_round = get_state("current_round")
 round_active = get_state("round_active")
 
 gm_pw = "pw"
-n_time_steps = 5
-max_concerts = 6
+n_time_steps = 10
+max_concerts = 10
 
 number_to_ordinal = [
     'first', 'second', 'third', 'fourth', 'fifth',
@@ -38,7 +38,6 @@ if role == "Game Master":
     # Game master password
     password = st.text_input("Enter password:", type="password")
     if password == gm_pw:
-        
 
         # Update (refresh) the page
         if st.button("Update"):
@@ -226,8 +225,7 @@ elif role == "Player":
     
                     row = position // n_cols
                     st.write(f"You will be stood in the {number_to_ordinal[row]} row at the next concert.")
-                    
-                    
+                                       
 
         else:
             st.write("Game Over!")
