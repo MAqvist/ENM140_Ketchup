@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import random
+import utilities as ut
 
 class BarGraph():
     def __init__(self, data):
@@ -77,6 +78,8 @@ class BarGraph():
 
 class SeminarGraph():
     def __init__(self, names, responses, timesteps, concert_number):
+        responses = np.array(responses)/timesteps
+        print(responses)
         self._names = np.array(names, dtype=str)
         self._responses = np.array(responses, dtype=float)
         self._timesteps = timesteps
@@ -118,11 +121,11 @@ class SeminarGraph():
             ax.text(x+.5, y, self._names[idx], verticalalignment='center')
             y_offset[i] += 1
             
-        ax.xticks(np.arange(0, self._timesteps+1))
-        ax.xlim([-.9, self._timesteps+2.5])
-        ax.ylabel('Attendees')
-        ax.xlabel('Timestep')
-        ax.title('Concert {}'.format(self._concert_number))
+        ax.set_xticks(np.arange(0, self._timesteps+1))
+        ax.set_xlim([-.9, self._timesteps+2.5])
+        ax.set_ylabel('Attendees')
+        ax.set_xlabel('Timestep')
+        ax.set_title('Concert {}'.format(self._concert_number))
         
         return fig
 
@@ -205,6 +208,31 @@ def generate_agents(num_agents, concerts, timesteps):
 
 # hej = BarGraph(A)
 # hej.plot_data()
+
+def plot_cumulative_utility(names, utility_total, current_round, n_time_steps):
+    fig, ax = plt.subplots()
+
+    # Calculate total utility for each player
+    total_utilities = {name: sum(np.concatenate(utility_total[name])) for name in names}
+
+    # Get the top 7 players with the highest utilities
+    top_7_names = sorted(total_utilities, key=total_utilities.get, reverse=True)[:7]
+
+    # Plot for the top 7 players
+    for name in top_7_names:
+        ax.plot(range(0, len(np.concatenate(utility_total[name]))), 
+                np.cumsum(utility_total[name]), 
+                label=name, 
+                color=ut.string_to_color(name))
+
+    ax.set_xticks(np.arange(0, int(current_round)*n_time_steps, n_time_steps))
+    ax.set_xticklabels(range(1, int(current_round)+1))
+    ax.set_xlabel("Concert Number")
+    ax.set_ylabel("Cumulative Utility")
+    ax.legend()
+    ax.grid()
+    ax.set_title("Cumulative Utility for Top 7 Players")
+    return fig
 
 names = ['lucas', 'august', 'malte', 'mathilda', 'diddy', 'tits', 'tats', 'johan', 'stefan', 'claes', 'erik', 'svenne', 'miklos', 'jasmin', 'gunilla','ingrid']
 responses = [0.9, 0.2, 0.2, 1., .5, .8, .0, .7, .7, .7, .8, .8, .9, 1, 1, 1]
